@@ -20,50 +20,47 @@ defmodule TodoList do
     todos.entries |> Map.get(id)
   end
 
-  def update_entry(
-        %TodoList{entries: entries, entries_by_date: entries_by_date} = todos,
-        id,
-        update_fn
-      ) do
-    case get_entry_by_id(todos, id) do
-      nil ->
-        todos
-
-      todo ->
-        updated_todo = Map.merge(todo, update_fn.(todo))
-
-        new_entries = Map.put(entries, todo.id, updated_todo)
-
-        new_entries_by_date =
-          if updated_todo.date != todo.date do
-            entries_by_date
-            |> MultiDict.delete(todo.date, todo.id)
-            |> MultiDict.add(updated_todo.date, todo.id)
-          else
-            entries_by_date
-          end
-
-        %{todos | entries: new_entries, entries_by_date: new_entries_by_date}
-    end
+  def update_entry(%TodoList{entries: entries} = todos, id, _) when not is_map_key(entries, id) do
+    todos
   end
 
-  def delete_entry(
-        %TodoList{entries: entries, entries_by_date: entries_by_date} = todos,
-        id
-      ) do
-    case get_entry_by_id(todos, id) do
-      nil ->
-        todos
+  def update_entry(%TodoList{} = todos, id, update_fn) do
+    %TodoList{entries: entries, entries_by_date: entries_by_date} = todos
 
-      todo ->
-        new_entries = Map.delete(entries, todo.id)
+    todo = get_entry_by_id(todos, id)
 
-        new_entries_by_date =
-          entries_by_date
-          |> MultiDict.delete(todo.date, todo.id)
+    updated_todo = Map.merge(todo, update_fn.(todo))
 
-        %TodoList{todos | entries: new_entries, entries_by_date: new_entries_by_date}
-    end
+    new_entries = Map.put(entries, todo.id, updated_todo)
+
+    new_entries_by_date =
+      if updated_todo.date != todo.date do
+        entries_by_date
+        |> MultiDict.delete(todo.date, todo.id)
+        |> MultiDict.add(updated_todo.date, todo.id)
+      else
+        entries_by_date
+      end
+
+    %{todos | entries: new_entries, entries_by_date: new_entries_by_date}
+  end
+
+  def delete_entry(%TodoList{entries: entries} = todos, id) when not is_map_key(entries, id) do
+    todos
+  end
+
+  def delete_entry(%TodoList{} = todos, id) do
+    %TodoList{entries: entries, entries_by_date: entries_by_date} = todos
+
+    todo = get_entry_by_id(todos, id)
+
+    new_entries = Map.delete(entries, todo.id)
+
+    new_entries_by_date =
+      entries_by_date
+      |> MultiDict.delete(todo.date, todo.id)
+
+    %TodoList{todos | entries: new_entries, entries_by_date: new_entries_by_date}
   end
 
   def entries(%TodoList{entries: entries, entries_by_date: entries_by_date}, date) do
