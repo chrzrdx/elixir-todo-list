@@ -29,7 +29,11 @@ defmodule TodoList do
 
     todo = get_entry_by_id(todos, id)
 
-    updated_todo = Map.merge(todo, update_fn.(todo))
+    updated_todo =
+      %{id: ^id} =
+      todo
+      |> Map.merge(update_fn.(todo))
+      |> Map.take([:id, :date, :title])
 
     new_entries = Map.put(entries, todo.id, updated_todo)
 
