@@ -109,4 +109,27 @@ defmodule TodoList do
       %{date: ~D[2023-05-02], title: "sing a song"}
     ])
   end
+
+  def test3() do
+    entries = [
+      %{date: ~D[2023-05-03], title: "get groceries"},
+      %{date: ~D[2023-05-02], title: "write journal"},
+      %{date: ~D[2023-05-05], title: "buy coconut"},
+      %{date: ~D[2023-05-03], title: "sell feet pics"},
+      %{date: ~D[2023-05-03], title: "redeem coupon"},
+      %{date: ~D[2023-05-02], title: "sing a song"}
+    ]
+
+    for entry <- entries, into: new(), do: entry
+  end
+end
+
+defimpl Collectable, for: TodoList do
+  def into(original), do: {original, &into_callback/2}
+
+  def into_callback(todos, {:cont, entry}), do: TodoList.add_entry(todos, entry)
+
+  def into_callback(todos, :done), do: todos
+
+  def into_callback(_todos, :halt), do: :ok
 end
