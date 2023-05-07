@@ -5,6 +5,14 @@ defmodule TodoList do
 
   def new(), do: %TodoList{}
 
+  def new(entries) do
+    entries
+    |> Stream.map(&Map.take(&1, [:date, :title]))
+    |> Enum.reduce(new(), fn entry, todos_acc -> add_entry(todos_acc, entry) end)
+
+    # or, more cryptically: Enum.reduce(new(), fn entry, &add_entry(&2, &1))
+  end
+
   def add_entry(
         %TodoList{entries: entries, entries_by_date: entries_by_date, auto_id: auto_id} = todos,
         %{date: date, title: title}
@@ -89,5 +97,16 @@ defmodule TodoList do
     |> update_entry(3, fn _ -> %{date: ~D[2023-05-06]} end)
     |> add_entry(%{date: ~D[2023-05-03], title: "jog 5km"})
     |> delete_entry(4)
+  end
+
+  def test2() do
+    new([
+      %{date: ~D[2023-05-03], title: "get groceries"},
+      %{date: ~D[2023-05-02], title: "write journal"},
+      %{date: ~D[2023-05-05], title: "buy coconut"},
+      %{date: ~D[2023-05-03], title: "sell feet pics"},
+      %{date: ~D[2023-05-03], title: "redeem coupon"},
+      %{date: ~D[2023-05-02], title: "sing a song"}
+    ])
   end
 end
