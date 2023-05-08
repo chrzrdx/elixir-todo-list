@@ -1,5 +1,9 @@
 defmodule Calculator.Server do
-  def loop() do
+  def start() do
+    spawn(fn -> loop() end)
+  end
+
+  defp loop() do
     receive do
       {pid, :add, {x, y}} -> ack(pid, {:ok, x + y})
       {pid, :sub, {x, y}} -> ack(pid, {:ok, x - y})
@@ -11,10 +15,6 @@ defmodule Calculator.Server do
     end
 
     loop()
-  end
-
-  def start() do
-    spawn(fn -> loop() end)
   end
 
   defp ack(caller_pid, message) do
@@ -31,20 +31,17 @@ defmodule Calculator.Pooler do
 
   def start() do
     spawn(fn ->
-      pids =
-        for id <- 1..100, into: MapSet.new() do
-          {id, Server.start()}
-        end
+      pids = for _ <- 1..10, into: MapSet.new(), do: Server.start()
 
       loop(%Pooler{pids: pids})
     end)
   end
 
-  def loop(%Pooler{pids: pids} = pooler) do
+  defp loop(%Pooler{pids: pids} = pooler) do
     receive do
       message ->
         IO.inspect(message)
-        {_, random_pid} = Enum.random(pids)
+        random_pid = Enum.random(pids)
         send(random_pid, message)
     end
 
@@ -56,6 +53,11 @@ defmodule Calculator.Client do
   defstruct server_pid: nil
 
   alias Calculator.Client
+
+  def add(%Client{} = client, {x, y}), do: send(client, :add, {x, y})
+  def sub(%Client{} = client, {x, y}), do: send(client, :sub, {x, y})
+  def mul(%Client{} = client, {x, y}), do: send(client, :mul, {x, y})
+  def div(%Client{} = client, {x, y}), do: send(client, :div, {x, y})
 
   defp send(nil, _, _), do: raise("No server pid provided")
 
@@ -75,11 +77,6 @@ defmodule Calculator.Client do
 
     client
   end
-
-  def add(%Client{} = client, {x, y}), do: send(client, :add, {x, y})
-  def sub(%Client{} = client, {x, y}), do: send(client, :sub, {x, y})
-  def mul(%Client{} = client, {x, y}), do: send(client, :mul, {x, y})
-  def div(%Client{} = client, {x, y}), do: send(client, :div, {x, y})
 
   def test() do
     %Client{server_pid: self()}
