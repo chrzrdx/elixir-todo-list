@@ -23,6 +23,35 @@ defmodule Calculator.Server do
   end
 end
 
+defmodule Calculator.Pooler do
+  defstruct pids: MapSet.new()
+
+  alias Calculator.Pooler
+  alias Calculator.Server
+
+  def start() do
+    spawn(fn ->
+      pids =
+        for id <- 1..100, into: MapSet.new() do
+          {id, Server.start()}
+        end
+
+      loop(%Pooler{pids: pids})
+    end)
+  end
+
+  def loop(%Pooler{pids: pids} = pooler) do
+    receive do
+      message ->
+        IO.inspect(message)
+        {_, random_pid} = Enum.random(pids)
+        send(random_pid, message)
+    end
+
+    loop(pooler)
+  end
+end
+
 defmodule Calculator.Client do
   defstruct server_pid: nil
 
