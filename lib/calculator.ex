@@ -59,7 +59,7 @@ defmodule Calculator.Client do
   def mul(%Client{} = client, {x, y}), do: send(client, :mul, {x, y})
   def div(%Client{} = client, {x, y}), do: send(client, :div, {x, y})
 
-  defp send(nil, _, _), do: raise("No server pid provided")
+  defp send(%Client{server_pid: nil}, _, _), do: raise("No server pid provided")
 
   defp send(%Client{server_pid: server_pid} = client, op, args) do
     spawn(fn ->
