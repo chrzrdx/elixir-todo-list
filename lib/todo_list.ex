@@ -79,7 +79,6 @@ defmodule TodoList do
     entries_by_date
     |> MultiDict.get(date)
     |> Stream.map(&Map.get(entries, &1))
-    |> IO.inspect()
     |> Enum.map(&Map.get(&1, :title))
   end
 
