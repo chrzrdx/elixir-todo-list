@@ -138,3 +138,56 @@ defmodule TodoList.RegisteredServer do
     __MODULE__.entries(~D[2023-05-03])
   end
 end
+
+defmodule TodoList.GenServer do
+  use GenServer
+
+  @impl GenServer
+  def init(_) do
+    {:ok, TodoList.new()}
+  end
+
+  @impl GenServer
+  def handle_call({:entries, %Date{} = date}, _, todos) do
+    {:reply, TodoList.entries(todos, date), todos}
+  end
+
+  @impl GenServer
+  def handle_cast({:add_entry, %{date: date, title: title}}, todos) do
+    {:noreply, TodoList.add_entry(todos, %{date: date, title: title})}
+  end
+
+  @impl GenServer
+  def handle_cast({:update_entry, id, update_fn}, todos) do
+    {:noreply, TodoList.update_entry(todos, id, update_fn)}
+  end
+
+  @impl GenServer
+  def handle_cast({:delete_entry, id}, todos) do
+    {:noreply, TodoList.delete_entry(todos, id)}
+  end
+
+  # public facing functions
+  def start(), do: GenServer.start(__MODULE__, nil, name: __MODULE__)
+
+  def add_entry(todo), do: GenServer.cast(__MODULE__, {:add_entry, todo})
+
+  def entries(%Date{} = date), do: GenServer.call(__MODULE__, {:entries, date})
+
+  def update_entry(id, update_fn), do: GenServer.cast(__MODULE__, {:update_entry, id, update_fn})
+
+  def delete_entry(id), do: GenServer.cast(__MODULE__, {:delete_entry, id})
+
+  def test() do
+    __MODULE__.start()
+
+    __MODULE__.add_entry(%{date: ~D[2023-05-03], title: "get groceries"})
+    __MODULE__.add_entry(%{date: ~D[2023-05-02], title: "write journal"})
+    __MODULE__.add_entry(%{date: ~D[2023-05-05], title: "buy coconut"})
+    __MODULE__.add_entry(%{date: ~D[2023-05-03], title: "sell feet pics"})
+    __MODULE__.add_entry(%{date: ~D[2023-05-03], title: "redeem coupon"})
+    __MODULE__.add_entry(%{date: ~D[2023-05-02], title: "sing a song"})
+
+    __MODULE__.entries(~D[2023-05-03])
+  end
+end
