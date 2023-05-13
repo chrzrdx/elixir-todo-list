@@ -20,13 +20,13 @@ defmodule Todo.Cache do
 end
 
 defmodule Todo.Cache.Test do
-  def test(n \\ 100) do
+  def test(n \\ 10) do
     with {:ok, _} <- Todo.Cache.start() do
       Enum.each(1..n, &Todo.Cache.server_process("List number #{&1}"))
     end
 
-    alice = Todo.Cache.server_process("List number 1")
-    bob = Todo.Cache.server_process("List number 2")
+    {:ok, alice} = Todo.Cache.server_process("List number 1")
+    {:ok, bob} = Todo.Cache.server_process("List number #{n + 1}")
 
     Todo.Server.add_entry(alice, %{date: ~D[2023-05-03], title: "get groceries"})
     Todo.Server.add_entry(alice, %{date: ~D[2023-05-02], title: "write journal"})
@@ -36,8 +36,19 @@ defmodule Todo.Cache.Test do
     Todo.Server.add_entry(bob, %{date: ~D[2023-05-03], title: "redeem coupon"})
     Todo.Server.add_entry(bob, %{date: ~D[2023-05-02], title: "sing a song"})
 
-    Todo.Server.entries(alice, ~D[2023-05-03])
-    Todo.Server.entries(bob, ~D[2023-05-03])
-    Todo.Server.entries(bob, ~D[2023-05-10])
+    Todo.Server.entries(alice, ~D[2023-05-03]) |> IO.inspect()
+    Todo.Server.entries(bob, ~D[2023-05-03]) |> IO.inspect()
+    Todo.Server.entries(bob, ~D[2023-05-10]) |> IO.inspect()
+
+    Enum.each(
+      1..(n + 1),
+      fn i ->
+        with {:ok, pid} <- Todo.Cache.server_process("List number #{i}") do
+          GenServer.stop(pid, :normal)
+        end
+      end
+    )
+
+    GenServer.stop(Todo.Cache, :normal)
   end
 end
