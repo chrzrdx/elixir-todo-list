@@ -33,22 +33,3 @@ defmodule GenericServer do
     end
   end
 end
-
-defmodule KVStore do
-  def init(), do: Map.new()
-  def handle_call({:get, key}, store), do: {Map.get(store, key), store}
-  def handle_call({:put, key, value}, store), do: {:ok, Map.put(store, key, value)}
-  def handle_cast({:put, key, value}, store), do: Map.put(store, key, value)
-end
-
-defmodule KVStoreTest do
-  def test do
-    kv = GenericServer.start(KVStore)
-    GenericServer.call(kv, {:put, :name, "Abhinandan"}) |> IO.inspect()
-    GenericServer.call(kv, {:put, :email, "abhi@gmail.com"}) |> IO.inspect()
-    GenericServer.cast(kv, {:put, :email, "nandan@gmail.com"}) |> IO.inspect()
-    GenericServer.call(kv, {:get, :name}) |> IO.inspect()
-    GenericServer.call(kv, {:get, :email}) |> IO.inspect()
-    :ok
-  end
-end
