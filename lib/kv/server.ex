@@ -1,4 +1,4 @@
-defmodule KV do
+defmodule KV.Server do
   use GenServer
 
   @impl GenServer

@@ -1,4 +1,4 @@
-defmodule TodoList.CsvImporter do
+defmodule Todo.List.CsvImporter do
   def import(path) do
     TodoList.new(
       File.stream!(path)
@@ -21,6 +21,6 @@ defmodule TodoList.CsvImporter do
   end
 
   def test() do
-    TodoList.CsvImporter.import("./test/sample_todo_list.csv")
+    Todo.List.CsvImporter.import("./test/sample_todo_list.csv")
   end
 end
