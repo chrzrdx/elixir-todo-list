@@ -1,6 +1,6 @@
 defmodule Todo.List.CsvImporter do
   def import(path) do
-    TodoList.new(
+    Todo.List.new(
       File.stream!(path)
       |> Stream.map(&String.trim/1)
       |> Stream.map(&String.split(&1, ",", take: 2))

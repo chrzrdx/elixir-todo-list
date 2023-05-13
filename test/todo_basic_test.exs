@@ -1,8 +1,8 @@
 defmodule TodoListTest do
   use ExUnit.Case
-  doctest TodoList
+  doctest Todo.List
 
   test "greets the world" do
-    assert TodoList.hello() == :world
+    assert Todo.List.hello() == :world
   end
 end
