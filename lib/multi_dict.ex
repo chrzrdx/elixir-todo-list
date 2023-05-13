@@ -20,21 +20,4 @@ defmodule MultiDict do
   end
 
   def get(dict, key), do: Map.get(dict, key, [])
-
-  def test() do
-    new()
-    |> add(1, :a)
-    |> add(2, :a)
-    |> add(3, :a)
-    |> add(4, :a)
-    |> add(1, :b)
-    |> add(2, :b)
-    |> add(3, :b)
-    |> add(1, :c)
-    |> delete(1, :b)
-    |> add(1, :b)
-    |> delete(4, :a)
-    |> delete(4, :a)
-    |> delete(4, :a)
-  end
 end

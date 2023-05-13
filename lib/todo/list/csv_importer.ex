@@ -19,8 +19,4 @@ defmodule Todo.List.CsvImporter do
     [year, month, day] = date_str |> String.split("/") |> Enum.map(&String.to_integer/1)
     Date.new(year, month, day)
   end
-
-  def test() do
-    Todo.List.CsvImporter.import("./test/sample_todo_list.csv")
-  end
 end
