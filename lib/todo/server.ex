@@ -27,13 +27,14 @@ defmodule Todo.Server do
   end
 
   # public facing functions
-  def start(), do: GenServer.start(__MODULE__, nil, name: __MODULE__)
+  def start(), do: GenServer.start(__MODULE__, nil)
 
-  def add_entry(todo), do: GenServer.cast(__MODULE__, {:add_entry, todo})
+  def add_entry(server_pid, todo), do: GenServer.cast(server_pid, {:add_entry, todo})
 
-  def entries(%Date{} = date), do: GenServer.call(__MODULE__, {:entries, date})
+  def entries(server_pid, %Date{} = date), do: GenServer.call(server_pid, {:entries, date})
 
-  def update_entry(id, update_fn), do: GenServer.cast(__MODULE__, {:update_entry, id, update_fn})
+  def update_entry(server_pid, id, update_fn),
+    do: GenServer.cast(server_pid, {:update_entry, id, update_fn})
 
-  def delete_entry(id), do: GenServer.cast(__MODULE__, {:delete_entry, id})
+  def delete_entry(server_pid, id), do: GenServer.cast(server_pid, {:delete_entry, id})
 end
