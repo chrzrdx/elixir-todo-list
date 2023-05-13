@@ -7,7 +7,7 @@ defmodule TodoListTest do
       |> Todo.List.add_entry(%{date: ~D[2023-05-03], title: "get groceries"})
       |> Todo.List.add_entry(%{date: ~D[2023-05-02], title: "write journal"})
       |> Todo.List.add_entry(%{date: ~D[2023-05-05], title: "buy coconut"})
-      |> Todo.List.add_entry(%{date: ~D[2023-05-03], title: "sell feet pics"})
+      |> Todo.List.add_entry(%{date: ~D[2023-05-03], title: "sell cat pics"})
       |> Todo.List.add_entry(%{date: ~D[2023-05-03], title: "redeem coupon"})
       |> Todo.List.add_entry(%{date: ~D[2023-05-02], title: "sing a song"})
       |> Todo.List.update_entry(6, fn _ -> %{date: ~D[2023-05-02], title: "sing a lullaby"} end)

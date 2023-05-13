@@ -60,7 +60,7 @@ defmodule Todo.Server.Registered do
     __MODULE__.add_entry(%{date: ~D[2023-05-03], title: "get groceries"})
     __MODULE__.add_entry(%{date: ~D[2023-05-02], title: "write journal"})
     __MODULE__.add_entry(%{date: ~D[2023-05-05], title: "buy coconut"})
-    __MODULE__.add_entry(%{date: ~D[2023-05-03], title: "sell feet pics"})
+    __MODULE__.add_entry(%{date: ~D[2023-05-03], title: "sell cat pics"})
     __MODULE__.add_entry(%{date: ~D[2023-05-03], title: "redeem coupon"})
     __MODULE__.add_entry(%{date: ~D[2023-05-02], title: "sing a song"})
 

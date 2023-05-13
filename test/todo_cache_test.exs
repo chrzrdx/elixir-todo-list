@@ -16,7 +16,7 @@ defmodule TodoCacheTest do
     Server.add_entry(alice, %{date: ~D[2023-05-03], title: "get groceries"})
     Server.add_entry(alice, %{date: ~D[2023-05-02], title: "write journal"})
     Server.add_entry(alice, %{date: ~D[2023-05-05], title: "buy coconut"})
-    Server.add_entry(alice, %{date: ~D[2023-05-03], title: "sell feet pics"})
+    Server.add_entry(alice, %{date: ~D[2023-05-03], title: "sell cat pics"})
 
     Server.add_entry(bob, %{date: ~D[2023-05-03], title: "redeem coupon"})
     Server.add_entry(bob, %{date: ~D[2023-05-02], title: "sing a song"})
@@ -40,7 +40,7 @@ defmodule TodoCacheTest do
   test "add entry works", context do
     %{alice: alice, bob: bob} = context
 
-    assert Server.entries(alice, ~D[2023-05-03]) == ["sell feet pics", "get groceries"]
+    assert Server.entries(alice, ~D[2023-05-03]) == ["sell cat pics", "get groceries"]
     assert Server.entries(bob, ~D[2023-05-03]) == ["redeem coupon"]
   end
 
