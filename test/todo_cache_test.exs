@@ -3,15 +3,15 @@ defmodule TodoCacheTest do
   alias Todo.Cache
   alias Todo.Server
 
-  setup do
+  setup %{test: test_name} do
     n = 10
 
-    with {:ok, _} <- Cache.start() do
-      Enum.each(1..n, &Cache.server_process("List number #{&1}"))
-    end
+    {:ok, cache_pid} = Cache.start(test_name)
 
-    {:ok, alice} = Cache.server_process("List number 1")
-    {:ok, bob} = Cache.server_process("List number #{n + 1}")
+    Enum.each(1..n, &Cache.server_process(cache_pid, "List number #{&1}"))
+
+    {:ok, alice} = Cache.server_process(cache_pid, "List number 1")
+    {:ok, bob} = Cache.server_process(cache_pid, "List number #{n + 1}")
 
     Server.add_entry(alice, %{date: ~D[2023-05-03], title: "get groceries"})
     Server.add_entry(alice, %{date: ~D[2023-05-02], title: "write journal"})
@@ -25,13 +25,13 @@ defmodule TodoCacheTest do
       Enum.each(
         1..(n + 1),
         fn i ->
-          with {:ok, pid} <- Cache.server_process("List number #{i}") do
-            GenServer.stop(pid, :normal)
+          with {:ok, server_pid} <- Cache.server_process(cache_pid, "List number #{i}") do
+            GenServer.stop(server_pid, :normal)
           end
         end
       )
 
-      GenServer.stop(Cache, :normal)
+      GenServer.stop(cache_pid, :normal)
     end)
 
     %{alice: alice, bob: bob}
