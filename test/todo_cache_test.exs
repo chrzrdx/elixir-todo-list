@@ -3,7 +3,6 @@ defmodule TodoCacheTest do
 
   alias Todo.Cache
   alias Todo.Cache.Config, as: CacheConfig
-  alias Todo.Database
   alias Todo.Database.Config, as: DatabaseConfig
   alias Todo.Server
 
