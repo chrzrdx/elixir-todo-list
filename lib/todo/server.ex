@@ -1,33 +1,53 @@
 defmodule Todo.Server do
+  alias Todo.Database.Config, as: DatabaseConfig
+  alias Todo.Database
+
+  defmodule Config do
+    defstruct key: nil, db: %DatabaseConfig{}
+  end
+
   use GenServer
 
   @impl GenServer
-  def init(_) do
-    {:ok, Todo.List.new()}
+  def init(%Config{key: nil} = config) do
+    todos = Todo.List.new()
+    {:ok, {config, todos}}
   end
 
   @impl GenServer
-  def handle_call({:entries, %Date{} = date}, _, todos) do
-    {:reply, Todo.List.entries(todos, date), todos}
+  def init(%Config{} = config) do
+    todos = Database.get(config.db, config.key) || Todo.List.new()
+    {:ok, {config, todos}}
   end
 
   @impl GenServer
-  def handle_cast({:add_entry, %{date: date, title: title}}, todos) do
-    {:noreply, Todo.List.add_entry(todos, %{date: date, title: title})}
+  def handle_call({:entries, %Date{} = date}, _, {_, todos} = state) do
+    {:reply, Todo.List.entries(todos, date), state}
   end
 
   @impl GenServer
-  def handle_cast({:update_entry, id, update_fn}, todos) do
-    {:noreply, Todo.List.update_entry(todos, id, update_fn)}
+  def handle_cast({:add_entry, %{date: date, title: title}}, {config, todos}) do
+    new_todos = Todo.List.add_entry(todos, %{date: date, title: title})
+    Todo.Database.store(config.db, config.key, new_todos)
+    {:noreply, {config, new_todos}}
   end
 
   @impl GenServer
-  def handle_cast({:delete_entry, id}, todos) do
-    {:noreply, Todo.List.delete_entry(todos, id)}
+  def handle_cast({:update_entry, id, update_fn}, {config, todos}) do
+    new_todos = Todo.List.update_entry(todos, id, update_fn)
+    Todo.Database.store(config.db, config.key, new_todos)
+    {:noreply, {config, new_todos}}
+  end
+
+  @impl GenServer
+  def handle_cast({:delete_entry, id}, {config, todos}) do
+    new_todos = Todo.List.delete_entry(todos, id)
+    Todo.Database.store(config.db, config.key, new_todos)
+    {:noreply, {config, new_todos}}
   end
 
   # public facing functions
-  def start(), do: GenServer.start(__MODULE__, nil)
+  def start(config \\ %Config{}), do: GenServer.start(__MODULE__, config)
 
   def add_entry(server_pid, todo), do: GenServer.cast(server_pid, {:add_entry, todo})
 

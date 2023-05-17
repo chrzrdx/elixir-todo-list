@@ -1,17 +1,33 @@
 defmodule TodoCacheTest do
   use ExUnit.Case
+
   alias Todo.Cache
+  alias Todo.Cache.Config, as: CacheConfig
+  alias Todo.Database
+  alias Todo.Database.Config, as: DatabaseConfig
   alias Todo.Server
 
   setup %{test: test_name} do
+    db_name = "db.#{to_string(test_name)}" |> String.to_atom()
+    persist_db = "./db/data/test.#{to_string(test_name)}"
+    cache_name = "cache.#{to_string(test_name)}" |> String.to_atom()
+
+    config = %CacheConfig{
+      name: cache_name,
+      db: %DatabaseConfig{
+        name: db_name,
+        persist_db: persist_db
+      }
+    }
+
+    {:ok, _} = Cache.start(config)
+
     n = 10
 
-    {:ok, cache_pid} = Cache.start(test_name)
+    Enum.each(1..n, &Cache.server_process(config, "List number #{&1}"))
 
-    Enum.each(1..n, &Cache.server_process(cache_pid, "List number #{&1}"))
-
-    {:ok, alice} = Cache.server_process(cache_pid, "List number 1")
-    {:ok, bob} = Cache.server_process(cache_pid, "List number #{n + 1}")
+    {:ok, alice} = Cache.server_process(config, "List number 1")
+    {:ok, bob} = Cache.server_process(config, "List number #{n + 1}")
 
     Server.add_entry(alice, %{date: ~D[2023-05-03], title: "get groceries"})
     Server.add_entry(alice, %{date: ~D[2023-05-02], title: "write journal"})
@@ -25,13 +41,16 @@ defmodule TodoCacheTest do
       Enum.each(
         1..(n + 1),
         fn i ->
-          with {:ok, server_pid} <- Cache.server_process(cache_pid, "List number #{i}") do
+          with {:ok, server_pid} <- Cache.server_process(config, "List number #{i}") do
             GenServer.stop(server_pid, :normal)
           end
         end
       )
 
-      GenServer.stop(cache_pid, :normal)
+      GenServer.stop(config.db.name, :normal)
+      File.rm_rf(config.db.persist_db)
+
+      GenServer.stop(config.name, :normal)
     end)
 
     %{alice: alice, bob: bob}

@@ -1,13 +1,32 @@
 defmodule TodoServerTest do
   use ExUnit.Case
+
+  alias Todo.Database
+  alias Todo.Database.Config, as: DatabaseConfig
   alias Todo.Server
+  alias Todo.Server.Config, as: ServerConfig
 
-  setup do
-    {:ok, server} = Server.start()
+  setup %{test: test_name} do
+    db_name = "db.#{to_string(test_name)}" |> String.to_atom()
+    persist_db = "./db/data/test.#{to_string(test_name)}"
 
-    on_exit(fn -> GenServer.stop(server, :normal) end)
+    db = %DatabaseConfig{
+      name: db_name,
+      persist_db: persist_db
+    }
 
-    %{server: server}
+    {:ok, _} = Database.start(db)
+
+    key = "alice.#{:rand.uniform()}"
+    {:ok, server_pid} = Server.start(%ServerConfig{key: key, db: db})
+
+    on_exit(fn ->
+      GenServer.stop(server_pid, :normal)
+      GenServer.stop(db.name, :normal)
+      File.rm_rf(db.persist_db)
+    end)
+
+    %{server: server_pid}
   end
 
   test "All public interface functions are implemented", context do
