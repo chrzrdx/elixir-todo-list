@@ -12,18 +12,23 @@ defmodule Todo.Database do
   end
 
   @impl GenServer
-  def handle_call({:get, key}, _, {%Config{} = config} = state) do
-    with {:ok, contents} <- File.read(file_name(config, key)) do
-      todos = :erlang.binary_to_term(contents)
-      {:reply, todos, state}
-    else
-      _ -> {:reply, nil, state}
-    end
+  def handle_call({:get, key}, caller, {%Config{} = config} = state) do
+    spawn(fn ->
+      reply =
+        case File.read(file_name(config, key)) do
+          {:ok, contents} -> :erlang.binary_to_term(contents)
+          _ -> nil
+        end
+
+      GenServer.reply(caller, reply)
+    end)
+
+    {:noreply, state}
   end
 
   @impl GenServer
   def handle_cast({:store, key, value}, {%Config{} = config} = state) do
-    File.write!(file_name(config, key), :erlang.term_to_binary(value))
+    spawn(fn -> file_name(config, key) |> File.write!(:erlang.term_to_binary(value)) end)
 
     {:noreply, state}
   end

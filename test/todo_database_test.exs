@@ -34,6 +34,9 @@ defmodule TodoDatabaseTest do
   end
 
   test "can read a todo list from the config", %{alice: alice, config: config} do
+    # wait for 1ms for the store operation to go through
+    Process.sleep(1)
+
     assert Database.get(config, alice) == %Todo.List{
              auto_id: 4,
              entries: %{
