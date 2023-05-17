@@ -27,7 +27,7 @@ defmodule TodoDatabaseTest do
 
     on_exit(fn ->
       GenServer.stop(config.name, :normal)
-      File.rm_rf!(Database.file_name(config, alice_todo_list_name))
+      File.rm_rf(config.persist_db)
     end)
 
     %{alice: alice_todo_list_name, config: config}
