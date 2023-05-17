@@ -1,17 +1,18 @@
 defmodule TodoDatabaseTest do
   use ExUnit.Case
   alias Todo.Database
+  alias Todo.Database.Config
 
   setup %{test: test_name} do
-    db = "db.#{to_string(test_name)}" |> String.to_atom()
+    db_name = "db.#{to_string(test_name)}" |> String.to_atom()
     persist_db = "./db/data/test.#{to_string(test_name)}"
 
-    database = %Database{
-      db: db,
+    config = %Config{
+      name: db_name,
       persist_db: persist_db
     }
 
-    {:ok, _} = Database.start(database)
+    {:ok, _} = Database.start(config)
 
     alice_todo_list_name = "alice.#{:rand.uniform()}"
 
@@ -22,18 +23,18 @@ defmodule TodoDatabaseTest do
         %{date: ~D[2023-05-02], title: "sing a song"}
       ])
 
-    Database.store(database, alice_todo_list_name, todos)
+    Database.store(config, alice_todo_list_name, todos)
 
     on_exit(fn ->
-      GenServer.stop(database.db, :normal)
-      File.rm_rf!(Database.file_name(database, alice_todo_list_name))
+      GenServer.stop(config.name, :normal)
+      File.rm_rf!(Database.file_name(config, alice_todo_list_name))
     end)
 
-    %{alice: alice_todo_list_name, database: database}
+    %{alice: alice_todo_list_name, config: config}
   end
 
-  test "can read a todo list from the database", %{alice: alice, database: database} do
-    assert Database.get(database, alice) == %Todo.List{
+  test "can read a todo list from the config", %{alice: alice, config: config} do
+    assert Database.get(config, alice) == %Todo.List{
              auto_id: 4,
              entries: %{
                1 => %{date: ~D[2023-05-03], id: 1, title: "get groceries"},
@@ -44,11 +45,11 @@ defmodule TodoDatabaseTest do
            }
   end
 
-  test "can write a todo list to the database", %{alice: alice, database: database} do
+  test "can write a todo list to the config", %{alice: alice, config: config} do
     # need this so that we're confident that the .store cast is processed by then
     # otherwise this test fails because the new file hasn't been created yet
-    Database.get(database, alice)
+    Database.get(config, alice)
 
-    assert File.exists?(Database.file_name(database, alice))
+    assert File.exists?(Database.file_name(config, alice))
   end
 end

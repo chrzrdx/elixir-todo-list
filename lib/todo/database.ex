@@ -1,18 +1,19 @@
 defmodule Todo.Database do
-  alias __MODULE__
+  defmodule Config do
+    defstruct name: Todo.Database, persist_db: "./db/data"
+  end
+
   use GenServer
 
-  defstruct db: __MODULE__, persist_db: "./db/data"
-
   @impl GenServer
-  def init(%Database{persist_db: persist_db} = initial_args) do
+  def init(%Config{persist_db: persist_db} = config) do
     File.mkdir_p!(persist_db)
-    {:ok, initial_args}
+    {:ok, {config}}
   end
 
   @impl GenServer
-  def handle_call({:get, key}, _, %Database{} = state) do
-    with {:ok, contents} <- File.read(file_name(state, key)) do
+  def handle_call({:get, key}, _, {%Config{} = config} = state) do
+    with {:ok, contents} <- File.read(file_name(config, key)) do
       todos = :erlang.binary_to_term(contents)
       {:reply, todos, state}
     else
@@ -21,25 +22,25 @@ defmodule Todo.Database do
   end
 
   @impl GenServer
-  def handle_cast({:store, key, value}, %Database{} = state) do
-    File.write!(file_name(state, key), :erlang.term_to_binary(value))
+  def handle_cast({:store, key, value}, {%Config{} = config} = state) do
+    File.write!(file_name(config, key), :erlang.term_to_binary(value))
 
     {:noreply, state}
   end
 
-  def start(args \\ %Database{}) do
-    GenServer.start(__MODULE__, args, name: args.db)
+  def start(args \\ %Config{}) do
+    GenServer.start(__MODULE__, args, name: args.name)
   end
 
-  def store(state \\ %Database{}, key, value) do
-    GenServer.cast(state.db, {:store, key, value})
+  def store(config \\ %Config{}, key, value) do
+    GenServer.cast(config.name, {:store, key, value})
   end
 
-  def get(state \\ %Database{}, key) do
-    GenServer.call(state.db, {:get, key})
+  def get(config \\ %Config{}, key) do
+    GenServer.call(config.name, {:get, key})
   end
 
-  def file_name(state \\ %Database{}, key) do
-    Path.join([state.persist_db, key])
+  def file_name(config \\ %Config{}, key) do
+    Path.join([config.persist_db, key])
   end
 end
